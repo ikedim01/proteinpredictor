@@ -1,13 +1,13 @@
-#Predicting protein properties (Gene Ontology/GO) using ULMFIT
+# Predicting protein properties (Gene Ontology/GO) using ULMFiT
 
-This project is an attempt to use ULMFIT to predict functional properties of a protein from its one-dimensional amino acid sequence. So, the first two things to cover are:
+This project is an attempt to use ULMFiT to predict functional properties of a protein from its one-dimensional amino acid sequence. So, the first two things to cover are:
 
-##What is ULMFIT? and, What are proteins?
+## What is ULMFiT? and, What are proteins?
 
-##What is ULMFIT?
+## What is ULMFiT?
 An algorithm with breakthrough results on NLP; a clever application of transfer learning - [the original paper](https://arxiv.org/abs/1801.06146).
 
-I'll give a quick walkthrough of applying ULMFIT to a particular NLP problem, as presented in fastai 2019 part1. For more detail, see the IMDB notebook from lesson 3.
+I'll give a quick walkthrough of applying ULMFiT to a particular NLP problem, as presented in fastai 2019 part1. For more detail, see the IMDB notebook from lesson 3.
 
 The problem: **sentiment analysis on IMDB movie reviews**. A classification problem - given a movie review written in English, is the review positive or negative? Training set of 25K labeled reviews.
 
@@ -18,9 +18,9 @@ The problem: **sentiment analysis on IMDB movie reviews**. A classification prob
 - Fine-tune the language model for the kind of text in our problem (movie reviews). Note in this step we can use all of our problem's data, including the training, validation and test sets!	
 - Use the internal state of this language model as an encoder; train the classifier based on the encoded values of the positive/negative examples in our training set.
 
-**More intuition about how ULMFIT works:** To do a really good job of predicting the next word, our language model has to have a pretty deep knowledge of English (or whatever language it was trained on). This knowledge is encoded into the internal state of the model, and so can be used to do other tasks like classifying text.
+**More intuition about how ULMFiT works:** To do a really good job of predicting the next word, our language model has to have a pretty deep knowledge of English (or whatever language it was trained on). This knowledge is encoded into the internal state of the model, and so can be used to do other tasks like classifying text.
 
-##What are proteins?
+## What are proteins?
 
 **The basics:** There are assorted complications on top of this, but the basic picture is:
 - Chromosomes are 1D DNA sequences of 4 possible "tokens" (nucleotides).
@@ -40,9 +40,9 @@ Enzyme chemistry:
 - is very specific - side reactions are often only a few percent or less; the enzyme is basically grabbing the reactant molecules and holding them in exactly the right position to react!
 - many reactions are proceeding at the same time in a very small space!
 
-**So, being able to predict a protein's functions and properties** from its 1D sequence is very interesting! And, as mentioned, the function mapping this 1D sequence to its functional shape (and therefore to its functions) is quite complex. And, experiments on protein function are very difficult and expensive compared to sequencing - this starts to sound like the NLP situation! So, I thought it would be worth trying a version of ULMFIT on this. I did some searching and found one existing project applying ULMFIT to genomic data at https://github.com/kheyer/Genomic-ULMFiT - however, the experiments in this project used ULMFIT on DNA and RNA sequence data, so I decided to try it on protein sequence data, with the objective of usefully predicting some protein functional properties.
+**So, being able to predict a protein's functions and properties** from its 1D sequence is very interesting! And, as mentioned, the function mapping this 1D sequence to its functional shape (and therefore to its functions) is quite complex. And, experiments on protein function are very difficult and expensive compared to sequencing - this starts to sound like the NLP situation! So, I thought it would be worth trying a version of ULMFiT on this. I did some searching and found one existing project applying ULMFiT to genomic data at https://github.com/kheyer/Genomic-ULMFiT - however, the experiments in this project used ULMFiT on DNA and RNA sequence data, so I decided to try it on protein sequence data, with the objective of usefully predicting some protein functional properties.
 
-##Experimental methods
+## Experimental methods/Results
 
 **Building the data sets:** I used the Swiss-Prot database. This apparently aims to be a comprehensive and up-to-date database of protein candidates that have been reviewed by human experts. For each protein, we have (of course) the amino acid sequence, but we also have lots of other helpful annotations, including various functional information, and the level of evidence for the protein's existence (this is on a scale of 1 to 5; 1=protein level, 2=transcript, 3=homology, 4=predicted, 5=uncertain). The latest version of Swiss-Prot can be downloaded from https://www.uniprot.org/downloads - I used the flat-file (.dat) format as of Dec. 3, 2019; the format of this file is given at https://web.expasy.org/docs/userman.html 
 
@@ -54,7 +54,7 @@ For details, see the [dataproc notebook](nb/dataproc.ipynb).
 
 **Building the language model:** I used single amino acids as tokens, and used fastai to train a language model with an AWD_LSTM architecture with default parameters using fit_one_cycle with a learning rate of 3e-3 for 40 epochs (other hyperparameters: moms=(0.8,0.7), drop_mult=0.2, random split of 0.1 for the validation set).
 
-**Language model results:** The model took about 2 days to train on my desktop and reached an accuracy of 53.2% on the validation set. I haven't yet tried to fine-tune the model as in the full ULMFIT algorithm. I also did the obligatory cool PCA graph on the amino acid embedding values in the model; this seemed to do a pretty good job of clustering the amino acids according to their chemical structure.
+**Language model results:** The model took about 2 days to train on my desktop and reached an accuracy of 53.2% on the validation set. I haven't yet tried to fine-tune the model as in the full ULMFiT algorithm. I also did the obligatory cool PCA graph on the amino acid embedding values in the model; this seemed to do a pretty good job of clustering the amino acids according to their chemical structure.
 
 For details, see the [training notebook](nb/ulmptrain.ipynb).
 
@@ -66,3 +66,13 @@ For GTP binding,  the classifier reached 99.8% accuracy after 5 epochs of traini
 I haven't yet tried to fine-tune the classifiers by unfreezing shallower layers.
 
 For details, see the [classification notebook](nb/ulmpclas.ipynb).
+
+## Tentative conclusion:
+
+While much remains to be done, initial results are promising.
+
+**Stuff to do:**
+- Improve the language model (try different hyperparameters, more epochs).
+- Try fine-tuning as in the full ULMFiT (ex. fine tune the language model by organism; fine-tune classifiers by unfreezing shallower layers).
+- Try more properties.
+- Use evidence tags for the GO terms (requires accessing other databases?).
