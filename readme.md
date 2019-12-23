@@ -1,8 +1,9 @@
 # Predicting protein properties (Gene Ontology/GO) using ULMFiT
 
-This project is an attempt to use ULMFiT to predict functional properties of a protein from its one-dimensional amino acid sequence. So, the first two things to cover are:
+This project is an attempt to use ULMFiT to predict functional properties of a protein from its one-dimensional amino acid sequence. First results seem promising - using the Swissprot database as a source, we predicted the ATP-binding and GTP-binding properties with high accuracy.
 
-## What is ULMFiT? and, What are proteins?
+Since we're using ULMFit on proteins, the first two things to cover are:
+**What is ULMFiT?** and, **What are proteins?**
 
 ## What is ULMFiT?
 An algorithm with breakthrough results on NLP; a clever application of transfer learning - [the original paper](https://arxiv.org/abs/1801.06146).
