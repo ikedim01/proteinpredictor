@@ -8,7 +8,7 @@ Since we're using ULMFit on proteins, the first two things to cover are:
 ## What is ULMFiT?
 An algorithm with breakthrough results on NLP; a clever application of transfer learning - [the original paper](https://arxiv.org/abs/1801.06146).
 
-I'll give a quick walkthrough of applying ULMFiT to a particular NLP problem, as presented in fastai 2019 part1. For more detail, see the IMDB notebook from lesson 3.
+I'll give a quick walkthrough of applying ULMFiT to a particular NLP problem, as presented in fastai 2019 part1. For more detail, see the IMDB notebook from lesson 3 of that course.
 
 The problem: **sentiment analysis on IMDB movie reviews**. A classification problem - given a movie review written in English, is the review positive or negative? Training set of 25K labeled reviews.
 
@@ -32,10 +32,12 @@ The problem: **sentiment analysis on IMDB movie reviews**. A classification prob
 **Why is this interesting?** Of course, proteins ultimately determine most of what goes on in biological organisms, and so are crucial to figuring out what causes diseases, to developing drugs, and so on.
 
 But also: proteins are incredible molecular machines! They are basically working nanotechnology. For example, consider enzymes (proteins that catalyze chemical reactions). Enzymes are capable of chemistry that is far beyond that designed by humans.
+  
 Chemistry designed by humans:
 - often works at extreme temperature/pressure; we have to bash the molecules together at very high speed to get a few lucky collisions that give us our wanted reaction.
 - is relatively nonspecific - will often produce a high proportion of unwanted "side reactions" that must then be purified out.
 - can generally only do one reaction at a time.
+  
 Enzyme chemistry:
 - generally works in very mild conditions (body temperature, neutral pH)
 - is very specific - side reactions are often only a few percent or less; the enzyme is basically grabbing the reactant molecules and holding them in exactly the right position to react!
@@ -52,12 +54,16 @@ Note: there's also a much larger database of protein sequences at the same site,
 I restricted to protein sequences with evidence level <= 3. I also restricted to sequences with lengths between 40 and 500, since I thought the "rules" for very short or very long sequences might be different. Finally, I restricted to sequences with no unknown residues, and to sequences that weren't flagged as fragments. This resulted in a total of about 110M amino acids in 424K sequences; according to Jeremy Howard, 100M tokens is generally enough to build a good language model.
 
 For details, see the [dataproc notebook](nb/dataproc.ipynb).
+  
+**Update 1/6/2020:** I tried splitting between proteins that were indicated to be transmembrane and non-transmembrane, with the idea that the "rules" for the two types of protein may be quite different I used the Swissprot KW transmembrane annotation to split. For non-transmembrane proteins there were a total of about 95M amino acids in 371K sequences; for transmembrane proteins there were 14M amino acids in 53K sequences.
 
 **Building the language model:** I used single amino acids as tokens, and used fastai to train a language model with an AWD_LSTM architecture with default parameters using fit_one_cycle with a learning rate of 3e-3 for 40 epochs (other hyperparameters: moms=(0.8,0.7), drop_mult=0.2, random split of 0.1 for the validation set).
 
 **Language model results:** The model took about 2 days to train on my desktop and reached an accuracy of 53.2% on the validation set. I haven't yet tried to fine-tune the model as in the full ULMFiT algorithm. I also did the obligatory cool PCA graph on the amino acid embedding values in the model; this seemed to do a pretty good job of clustering the amino acids according to their chemical structure.
 
 For details, see the [training notebook](nb/ulmptrain.ipynb).
+  
+**Update 1/6/2020:** I trained a language model on non-transmembrane proteins; with the same training method as previously, this reached 57.0% accuracy. Further training showed slow improvement in accuracy. I also generated a model for transmembrane proteins by starting with the non-transmembrane model and training it on the transmembrane set using fit_one_cycle with a learning rate of 3e-3 for 20 epochs (other hyperparameters: moms=(0.8,0.7), drop_mult=0.2, random split of 0.1 for the validation set). The transmembrane model was only 27.6% on the first epoch, but after 20 epochs reached 57.3% accuracy. Further training on the transmembrane set gave slow but steady improvement, reaching 60.2% after a considerable amount of further training.
 
 **Testing property prediction:** I used the GO (Gene Ontology) annotations in the Swiss-Prot database to generate a couple of binary classification problems. Specifically, I picked the ATP-binding and GTP-binding terms (GO:0005524 and GO:0005525, respectively), and attempted to predict whether these were present based on the protein sequence. To try to avoid a potential problem with repeated proteins, I clustered all sequences that shared any common 30-aa sequence, and randomly assigned each cluster to only one of the training, validation, and test sets; also, if a cluster was assigned to the validation or test sets I only used one sequence from that cluster. I randomly split clusters 75:15:10 into training, validation, and test.
 
@@ -67,6 +73,8 @@ For GTP binding,  the classifier reached 99.8% accuracy after 5 epochs of traini
 I haven't yet tried to fine-tune the classifiers by unfreezing shallower layers.
 
 For details, see the [classification notebook](nb/ulmpclas.ipynb).
+  
+**Update 1/6/2020:** I tested the same properties on non-transmembrane proteins using the non-transmembrane model; results were similar.
 
 ## Tentative conclusion:
 

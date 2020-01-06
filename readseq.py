@@ -6,6 +6,8 @@ import pickle
 import random
 import re
 
+import ulmputils
+
 # CODE TO PARSE .DAT FILES (Swissprot flat file format):
 def iterDat(fPath) :
     with open(fPath,'r') as f :
@@ -23,19 +25,21 @@ def scanDat(datFPath,fn,**kwargs) :
     return res
 def countDat(datFPath,fn,**kwargs) :
     return collections.Counter(scanDat(datFPath,fn,**kwargs))
-def filterDatForLMSet(datGroup, skipUndet=True, skipPyl=True,
+def filterDatForLMSet(datGroup, restrictTo20AA=True,
             minLen=50, maxLen=400, maxPE=None,
-            requireInOS=None,
+            requireInSpecies=None, elimKWs=[], requireKWs=[],
             requireInName='', excludeStrs=[]) :
     seq = getDatSeq(datGroup)[1]
+    kws = getDatKWs(datGroup)
     # print(seq)
-    if ((skipPyl and 'O' in seq)
-        or (skipUndet and any(c in seq for c in 'BJZX*-'))
+    if ((restrictTo20AA and any(c not in ulmputils.aaLettersSet for c in seq))
+        or any(elimKW in kws for elimKW in elimKWs)
+        or any(requireKW not in kws for requireKW in requireKWs)
         or (minLen is not None and len(seq)<minLen)
         or (maxLen is not None and len(seq)>maxLen)
         or (maxPE is not None and getDatPE(datGroup)>maxPE)
-        or (requireInOS is not None
-            and requireInOS not in getDatLns(datGroup,'OS')[0].lower())) :
+        or (requireInSpecies is not None
+            and requireInSpecies not in getDatLns(datGroup,'OS')[0].lower())) :
         return None
     name = getDatName(datGroup)
     lName = name.lower()
@@ -142,6 +146,12 @@ def getDatAC(datGroup) :
 def getDatGO(datGroup) :
     drLns = getDatLns(datGroup,'DR')
     return [[drLn for drLn in drLns if drLn.startswith('GO;')]]
+def getDatKWs(datGroup) :
+    kwLns = getDatLns(datGroup,'KW')
+    res = list(map(str.strip,itertools.chain.from_iterable(kwLn.split(';') for kwLn in kwLns)))
+    if len(res) > 0 :
+        res[-1] = res[-1].rstrip('.').strip()
+    return tuple(kw.lower() for kw in res if kw!='')
 def getDatName(datGroup) :
     deLns = getDatLns(datGroup,'DE')
     name = deLns[0].split('=')[1].rstrip(';')
