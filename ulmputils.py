@@ -50,7 +50,7 @@ def removeLatestModelVersion(learn,modelFName) :
         print('Removing',modelVersions[-2])
         (modelDirPath/(modelVersions[-2]+'.pth')).unlink()
     else :
-        print('No version available to load!')
+        print('No version available to remove!')
 def saveNextModelVersion(learn,modelFName) :
     modelVersions = getModelVersions(modelFName)
     print('Saving',modelVersions[-1])
